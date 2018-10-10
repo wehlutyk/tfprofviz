@@ -7,6 +7,7 @@ import Html.Events exposing (onClick, onInput)
 import Parser
 import ProfileParser exposing (profile)
 import Types exposing (Profile, Tree)
+import Viz exposing (profileViz)
 
 
 main =
@@ -48,9 +49,20 @@ update msg model =
 
 
 view model =
+    let
+        viz =
+            case model.parse of
+                Err e ->
+                    Html.div [] []
+
+                Ok parsedProfile ->
+                    profileViz parsedProfile
+    in
     div []
         [ Html.h2 [] [ text "Input" ]
         , Html.textarea [ onInput Input, style "width" "100%", style "height" "20em" ] [ text profileString ]
+        , Html.h2 [] [ text "Viz" ]
+        , viz
         , Html.h2 [] [ text "Model" ]
         , Html.p [] [ text (Debug.toString model.parse) ]
         ]
