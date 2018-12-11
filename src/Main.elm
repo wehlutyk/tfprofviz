@@ -60,7 +60,9 @@ view model =
     in
     div []
         [ Html.h2 [] [ text "Input" ]
-        , Html.textarea [ onInput Input, style "width" "100%", style "height" "20em" ] [ text profileString ]
+        , Html.textarea
+            [ onInput Input, style "width" "100%", style "height" "20em", style "resize" "vertical" ]
+            [ text profileString ]
         , Html.h2 [] [ text "Viz" ]
         , viz
         , Html.h2 [] [ text "Model" ]
