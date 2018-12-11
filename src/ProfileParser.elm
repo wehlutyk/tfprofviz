@@ -19,7 +19,7 @@ isNoLineSpace c =
 
 isVarChar : Char -> Bool
 isVarChar c =
-    Char.isAlphaNum c || c == '_'
+    Char.isAlphaNum c || c == '_' || c == '-'
 
 
 noLineSpaces : Parser.Parser ()
