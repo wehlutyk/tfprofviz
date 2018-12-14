@@ -7,14 +7,17 @@ import String
 import Svg exposing (circle, svg, text, text_)
 import Svg.Attributes exposing (..)
 import Tuple
-import Types exposing (Profile, Timing, Tree(..), Unit)
+import Types exposing (Profile, Timing, Tree(..), Unit, toList)
 
 
 profileViz : Profile -> Html.Html msg
 profileViz profile =
     Html.div []
         [ Html.text "Information we have:"
-        , Html.ul [] (List.map (\n -> Html.li [] [ Html.text n ]) profile.fieldNames)
+        , profile.fieldNames
+            |> toList
+            |> List.map (\n -> Html.li [] [ Html.text n ])
+            |> Html.ul []
         , svg
             [ width "100%"
             , height "300"
@@ -54,7 +57,7 @@ treeViz depth lims (Tree nodeNames nodeTimings children) =
 
         childrenVizs =
             children
-                |> List.map (\child -> treeViz (depth + 1) ( 0, 1 ) child)
+                |> List.map (treeViz (depth + 1) ( 0, 1 ))
                 |> List.concat
     in
     nodeArc :: childrenVizs

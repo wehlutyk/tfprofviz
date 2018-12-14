@@ -3,7 +3,7 @@ module ProfileParser exposing (profile)
 import Parser exposing ((|.), (|=), Step(..), Trailing(..))
 import Set
 import Tuple
-import Types exposing (Profile, Timing, Tree(..), Unit(..))
+import Types exposing (Profile, Timing, Tree(..), Triple, Unit(..), toTriple)
 
 
 header : Parser.Parser ()
@@ -36,7 +36,17 @@ noLineSpacesNonEmptyGet =
         }
 
 
-fieldNames : Parser.Parser (List String)
+tripleOrFail : List a -> Parser.Parser (Triple a)
+tripleOrFail list =
+    case toTriple list of
+        Just triple ->
+            Parser.succeed triple
+
+        Nothing ->
+            Parser.problem "lists of values must be of length 3"
+
+
+fieldNames : Parser.Parser (Triple String)
 fieldNames =
     Parser.sequence
         { start = ""
@@ -46,6 +56,8 @@ fieldNames =
         , item = fieldName
         , trailing = Parser.Forbidden
         }
+        |> Parser.map (List.drop 1)
+        |> Parser.andThen tripleOrFail
 
 
 identifier : Parser.Parser String
@@ -113,7 +125,7 @@ fieldValue =
         |= timing
 
 
-fieldValues : Parser.Parser (List ( Timing, Timing ))
+fieldValues : Parser.Parser (Triple ( Timing, Timing ))
 fieldValues =
     Parser.sequence
         { start = "("
@@ -123,6 +135,7 @@ fieldValues =
         , item = fieldValue
         , trailing = Parser.Forbidden
         }
+        |> Parser.andThen tripleOrFail
 
 
 nodeName : Parser.Parser (List String)
