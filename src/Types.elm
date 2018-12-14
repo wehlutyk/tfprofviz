@@ -17,4 +17,4 @@ type alias Profile =
 
 
 type Tree
-    = Tree (List String) (List ( Maybe Timing, Timing )) (List Tree)
+    = Tree (List String) (List ( Timing, Timing )) (List Tree)

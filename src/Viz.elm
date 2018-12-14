@@ -6,6 +6,7 @@ import Murmur3
 import String
 import Svg exposing (circle, svg, text, text_)
 import Svg.Attributes exposing (..)
+import Tuple
 import Types exposing (Profile, Timing, Tree(..), Unit)
 
 
@@ -19,7 +20,7 @@ profileViz profile =
             , height "300"
             , viewBox "0 0 100 100"
             ]
-            (treeViz 0 profile.tree)
+            (treeViz 0 ( 0, 1 ) profile.tree)
         ]
 
 
@@ -39,12 +40,24 @@ arcWidth =
     3
 
 
-treeViz depth (Tree nodeNames nodeTimings children) =
+treeViz depth lims (Tree nodeNames nodeTimings children) =
     let
-        head =
-            arc (arcWidth * (depth + 0.5)) 0.25 1 (nodeNamesToHexColor nodeNames)
+        -- TODO:
+        -- - get list of proportions (rhs gives total, lhs gives prop of parent in children (-- -> 0), and rhs of children gives props of children)
+        -- - cumsum
+        -- totTime =
+        -- nodeChildLims
+        -- childrenProps
+        -- childrenLims
+        nodeArc =
+            arc depth lims (nodeNamesToHexColor nodeNames)
+
+        childrenVizs =
+            children
+                |> List.map (\child -> treeViz (depth + 1) ( 0, 1 ) child)
+                |> List.concat
     in
-    head :: (List.concat <| List.map (\c -> treeViz (depth + 1) c) children)
+    nodeArc :: childrenVizs
 
 
 toStyle listTuples =
@@ -53,12 +66,12 @@ toStyle listTuples =
         |> String.join "; "
 
 
-arc radius startProp stopProp color =
+arc depth lims color =
     arcDetails 50
         50
-        radius
-        (startProp * 2 * pi)
-        (stopProp * 2 * pi)
+        (arcWidth * (depth + 0.5))
+        (Tuple.first lims * 2 * pi)
+        (Tuple.second lims * 2 * pi)
         [ strokeWidth <| String.fromFloat arcWidth
         , fill "none"
         , style <| "stroke: " ++ color
@@ -66,13 +79,13 @@ arc radius startProp stopProp color =
         []
 
 
-arcDetails x y radius startAngle stopAngle attrs contents =
+arcDetails x y radius startAngle endAngle attrs contents =
     let
         perimeter =
             2 * pi * radius
 
         arcLength =
-            (stopAngle - startAngle) * radius
+            (endAngle - startAngle) * radius
 
         fx =
             String.fromFloat x

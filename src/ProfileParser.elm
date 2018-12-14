@@ -97,23 +97,23 @@ timing =
         |= unit
 
 
-maybeTiming : Parser.Parser (Maybe Timing)
-maybeTiming =
+timingWithDefault : Parser.Parser Timing
+timingWithDefault =
     Parser.oneOf
-        [ Parser.map (\_ -> Nothing) (Parser.symbol "--")
-        , Parser.map Just timing
+        [ Parser.map (\_ -> ( 0, Microsecond )) (Parser.symbol "--")
+        , timing
         ]
 
 
-fieldValue : Parser.Parser ( Maybe Timing, Timing )
+fieldValue : Parser.Parser ( Timing, Timing )
 fieldValue =
     Parser.succeed Tuple.pair
-        |= maybeTiming
+        |= timingWithDefault
         |. Parser.symbol "/"
         |= timing
 
 
-fieldValues : Parser.Parser (List ( Maybe Timing, Timing ))
+fieldValues : Parser.Parser (List ( Timing, Timing ))
 fieldValues =
     Parser.sequence
         { start = "("
