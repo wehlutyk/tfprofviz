@@ -40,7 +40,7 @@ nodeNamesToHexColor nodeNames =
 
 
 arcWidth =
-    3
+    5
 
 
 timeToLims : ( Float, Float ) -> Float -> Float -> Float
