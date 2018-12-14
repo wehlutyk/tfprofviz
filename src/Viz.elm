@@ -7,7 +7,7 @@ import String
 import Svg exposing (circle, svg, text, text_)
 import Svg.Attributes exposing (..)
 import Tuple
-import Types exposing (Profile, Timing, Tree(..), Unit, toList)
+import Types exposing (Profile, Timing, Tree(..), Unit)
 
 
 profileViz : Profile -> Html.Html msg
@@ -15,7 +15,7 @@ profileViz profile =
     Html.div []
         [ Html.text "Information we have:"
         , profile.fieldNames
-            |> toList
+            |> Types.toList
             |> List.map (\n -> Html.li [] [ Html.text n ])
             |> Html.ul []
         , svg
@@ -43,24 +43,89 @@ arcWidth =
     3
 
 
+timeToLims : ( Float, Float ) -> Float -> Float -> Float
+timeToLims ( startLim, endLim ) maxTime time =
+    let
+        range =
+            endLim - startLim
+
+        prop =
+            time / maxTime
+    in
+    startLim + prop * range
+
+
+cumsumHelp : Float -> List Float -> List Float
+cumsumHelp a list =
+    case list of
+        head :: tail ->
+            (a + head) :: head :: tail
+
+        [] ->
+            [ a ]
+
+
+cumsum : List Float -> List Float
+cumsum list =
+    List.foldl cumsumHelp [ 0 ] list
+
+
+listToPairs : List a -> List ( a, a )
+listToPairs list =
+    case list of
+        [] ->
+            []
+
+        head :: [] ->
+            []
+
+        _ ->
+            List.map2 Tuple.pair (List.drop 1 list) list
+
+
 treeViz depth lims (Tree nodeNames nodeTimings children) =
     let
-        -- TODO:
-        -- - get list of proportions (rhs gives total, lhs gives prop of parent in children (-- -> 0), and rhs of children gives props of children)
-        -- - cumsum
-        -- totTime =
-        -- nodeChildLims
-        -- childrenProps
-        -- childrenLims
+        totTime =
+            nodeTimings
+                |> Types.first
+                |> Tuple.second
+                |> Types.toFloat
+
+        nodeChildTime =
+            nodeTimings
+                |> Types.first
+                |> Tuple.first
+                |> Types.toFloat
+
+        nodeChildLims =
+            ( Tuple.first lims
+            , timeToLims lims totTime nodeChildTime
+            )
+
+        childrenLims =
+            children
+                |> List.map (\(Tree _ childTimings _) -> childTimings)
+                |> List.map Types.first
+                |> List.map Tuple.second
+                |> List.map Types.toFloat
+                |> cumsum
+                |> List.map (\t -> timeToLims lims totTime (t + nodeChildTime))
+                |> listToPairs
+
+        nodeColor =
+            nodeNamesToHexColor nodeNames
+
         nodeArc =
-            arc depth lims (nodeNamesToHexColor nodeNames)
+            arc depth lims nodeColor
+
+        nodeChildArc =
+            arc (depth + 1) nodeChildLims nodeColor
 
         childrenVizs =
-            children
-                |> List.map (treeViz (depth + 1) ( 0, 1 ))
+            List.map2 (treeViz (depth + 1)) childrenLims children
                 |> List.concat
     in
-    nodeArc :: childrenVizs
+    nodeArc :: nodeChildArc :: childrenVizs
 
 
 toStyle listTuples =

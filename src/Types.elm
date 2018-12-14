@@ -1,4 +1,4 @@
-module Types exposing (Profile, Timing, Tree(..), Triple, Unit(..), first, second, third, toList, toTriple)
+module Types exposing (Profile, Timing, Tree(..), Triple, Unit(..), first, second, third, toFloat, toList, toTriple)
 
 
 type Unit
@@ -8,6 +8,16 @@ type Unit
 
 type alias Timing =
     ( Float, Unit )
+
+
+toFloat : Timing -> Float
+toFloat timing =
+    case timing of
+        ( ms, Millisecond ) ->
+            ms
+
+        ( us, Microsecond ) ->
+            us / 1000
 
 
 type Triple a
